@@ -14,7 +14,7 @@ redirect to OpenID Server login url:
 	}
 
 verify OpenID Server redirect back:
-	func VerifyHander(rw http.ResponseWriter, r *http.Request){
+	func verifyHander(rw http.ResponseWriter, r *http.Request){
 		...
 		user, err := o.IDRes(r)
 		...
@@ -33,29 +33,25 @@ import (
 	"time"
 )
 
-// Namespace openid.ns
 const (
+	// Namespace openid.ns
 	Namespace = "http://specs.openid.net/auth/2.0"
+	// ClaimedID openid.claimed_id
 	ClaimedID = "http://specs.openid.net/auth/2.0/identifier"
-	Identity  = "http://specs.openid.net/auth/2.0/identifier_select"
-	NSSreg    = "http://openid.net/extensions/sreg/1.1"
+	// Identity openid.identity
+	Identity = "http://specs.openid.net/auth/2.0/identifier_select"
+	// NSSreg openid.ns.sreg
+	NSSreg = "http://openid.net/extensions/sreg/1.1"
 )
 
 // OpenID implementation
-// 1) associate:
-//   Consumer --request--> OpenID Server
-// 2) checkid_setup:
-//   Consumer --redirect--> User Agent --request--> OpenID Server
-// 3) id_res:
-//   OpenID Server --redirect--> User Agent --request--> Consuer
 type OpenID struct {
 	assocType string
 	realm     string
 	assocs    *associations
 }
 
-// New openid
-// realm is local site, like https://localhost
+// New openid, realm is local site, like https://localhost
 func New(realm string) *OpenID {
 
 	assocs := &associations{store: map[string]Association{}}
@@ -68,10 +64,9 @@ func New(realm string) *OpenID {
 	return openid
 }
 
-// CheckIDSetup build redirect url for User Agent
-// opEndpoint: OpenID endpoint, like https://openidprovider.com/openid
-// callbackPrefix: Consumer urlPrefix which handle the OpenID Server
-//   back redirection
+// CheckIDSetup build redirect url for User Agent. opEndpoint is OpenID Server
+// endpoint, like https://openidprovider.com/openid; callbackPrefix is Consumer
+// urlPrefix which handle the OpenID Server back redirection.
 func (o *OpenID) CheckIDSetup(
 	opEndpoint string, callbackPrefix string) (string, error) {
 
@@ -119,8 +114,8 @@ func (o *OpenID) IDRes(r *http.Request) (map[string]string, error) {
 	return user, nil
 }
 
-// associate with OpenID Server
-// opEndpoint: OpenID endpoint, like https://openidserver.com/openid
+// associate with OpenID Server. opEndpoint is OpenID endpoint, like
+// https://openidserver.com/openid
 func (o *OpenID) associate(opEndpoint string) *Association {
 	values := map[string]string{
 		"mode":       "associate",
