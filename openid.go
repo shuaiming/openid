@@ -79,7 +79,7 @@ func (o *OpenID) CheckIDSetup(
 		"mode":          "checkid_setup",
 		"ns":            Namespace,
 		"assoc_handle":  assoc.Handle,
-		"return_to":     fmt.Sprintf("%s/%s", o.realm, callbackPrefix),
+		"return_to":     fmt.Sprintf("%s%s", o.realm, callbackPrefix),
 		"claimed_id":    ClaimedID,
 		"identity":      Identity,
 		"ns.sreg":       NSSreg,

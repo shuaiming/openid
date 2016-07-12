@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"hash"
+	"strings"
 	"sync"
 	"time"
 )
@@ -60,16 +61,16 @@ type associations struct {
 
 // get Association with key of endpoint
 func (assocs *associations) get(endpoint string) (Association, bool) {
-
+	ep := strings.TrimRight(endpoint, "/")
 	assocs.RLock()
-	assoc, ok := assocs.store[endpoint]
+	assoc, ok := assocs.store[ep]
 	assocs.RUnlock()
 
 	// clear expired associate
-	if assoc.Expires.Before(time.Now()) {
+	if assoc.Expires.Before(time.Now()) && ok {
 		assoc = Association{}
 		ok = false
-		assocs.delete(endpoint)
+		assocs.delete(ep)
 	}
 
 	return assoc, ok
@@ -79,12 +80,12 @@ func (assocs *associations) get(endpoint string) (Association, bool) {
 func (assocs *associations) set(endpoint string, assoc Association) {
 	assocs.Lock()
 	defer assocs.Unlock()
-	assocs.store[endpoint] = assoc
+	assocs.store[strings.TrimRight(endpoint, "/")] = assoc
 }
 
 // delete Association with key of endpoint
 func (assocs *associations) delete(endpoint string) {
 	assocs.Lock()
 	defer assocs.Unlock()
-	delete(assocs.store, endpoint)
+	delete(assocs.store, strings.TrimRight(endpoint, "/"))
 }
