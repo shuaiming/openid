@@ -67,7 +67,12 @@ func New(realm string) *OpenID {
 // endpoint, like https://openidprovider.com/openid; callbackPrefix is Consumer
 // urlPrefix which handle the OpenID Server back redirection.
 func (o *OpenID) CheckIDSetup(
-	endpoint string, callbackPrefix string) (string, error) {
+	endpoint string, callbackPrefix string, optional ...string) (string, error) {
+	required := "nickname,email,fullname"
+
+	if len(optional) > 0 {
+		required = optional[0]
+	}
 
 	assoc := o.associate(endpoint)
 	if assoc == nil {
@@ -78,11 +83,12 @@ func (o *OpenID) CheckIDSetup(
 		"mode":          "checkid_setup",
 		"ns":            Namespace,
 		"assoc_handle":  assoc.Handle,
+		"realm":         o.realm,
 		"return_to":     fmt.Sprintf("%s%s", o.realm, callbackPrefix),
 		"claimed_id":    ClaimedID,
 		"identity":      Identity,
 		"ns.sreg":       NSSreg,
-		"sreg.required": "nickname,email,fullname",
+		"sreg.required": required,
 	}
 
 	v := url.Values{}
