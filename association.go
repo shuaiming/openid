@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"hash"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -55,37 +56,47 @@ func (a *Association) sign(
 
 // associations store association with key of OpenID endpoint
 type associations struct {
-	sync.RWMutex
-	store map[string]Association
+	sync.Map
 }
 
 // get Association with key of endpoint
-func (assocs *associations) get(endpoint string) (Association, bool) {
-	ep := strings.TrimRight(endpoint, "/")
-	assocs.RLock()
-	assoc, ok := assocs.store[ep]
-	assocs.RUnlock()
-
-	// clear expired associate
-	if assoc.Expires.Before(time.Now()) && ok {
-		assoc = Association{}
-		ok = false
-		assocs.delete(ep)
+func (as *associations) get(endpoint string) (*Association, bool) {
+	endpoint = strings.TrimRight(endpoint, "/")
+	value, ok := as.Load(endpoint)
+	if !ok {
+		return nil, false
 	}
 
-	return assoc, ok
+	assoc := value.(*Association)
+	if assoc.Expires.After(time.Now()) {
+		return assoc, ok
+	}
+
+	// Cleaning
+	from, to := as.gc()
+	log.Printf("associates GC from %d to %d", from, to)
+
+	return nil, false
 }
 
 // set Association with key of endpoint
-func (assocs *associations) set(endpoint string, assoc Association) {
-	assocs.Lock()
-	defer assocs.Unlock()
-	assocs.store[strings.TrimRight(endpoint, "/")] = assoc
+func (as *associations) set(endpoint string, a *Association) {
+	as.Store(strings.TrimRight(endpoint, "/"), a)
 }
 
-// delete Association with key of endpoint
-func (assocs *associations) delete(endpoint string) {
-	assocs.Lock()
-	defer assocs.Unlock()
-	delete(assocs.store, strings.TrimRight(endpoint, "/"))
+// GC garbage collection
+func (as *associations) gc() (int, int) {
+	from, purged := 0, 0
+
+	as.Map.Range(func(k, v interface{}) bool {
+		a := v.(*Association)
+		if a.Expires.Before(time.Now()) {
+			purged++
+			as.Map.Delete(k)
+		}
+		from++
+		return true
+	})
+
+	return from, from - purged
 }

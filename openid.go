@@ -54,23 +54,22 @@ type OpenID struct {
 // New openid, realm is local site, like https://localhost
 func New(realm string) *OpenID {
 
-	assocs := &associations{store: map[string]Association{}}
 	openid := &OpenID{
 		assocType: hmacSHA256,
 		realm:     realm,
-		assocs:    assocs,
+		assocs:    &associations{},
 	}
 
 	return openid
 }
 
-// CheckIDSetup build redirect url for User Agent. opEndpoint is OpenID Server
+// CheckIDSetup build redirect url for User Agent. endport is OpenID Server
 // endpoint, like https://openidprovider.com/openid; callbackPrefix is Consumer
 // urlPrefix which handle the OpenID Server back redirection.
 func (o *OpenID) CheckIDSetup(
-	opEndpoint string, callbackPrefix string) (string, error) {
+	endpoint string, callbackPrefix string) (string, error) {
 
-	assoc := o.associate(opEndpoint)
+	assoc := o.associate(endpoint)
 	if assoc == nil {
 		return "", fmt.Errorf("associate with OpenID Server failed")
 	}
@@ -89,7 +88,7 @@ func (o *OpenID) CheckIDSetup(
 	v := url.Values{}
 	encodeHTTP(v, values)
 
-	urlStr := fmt.Sprintf("%s?%s", opEndpoint, v.Encode())
+	urlStr := fmt.Sprintf("%s?%s", endpoint, v.Encode())
 	return urlStr, nil
 }
 
@@ -114,21 +113,21 @@ func (o *OpenID) IDRes(r *http.Request) (map[string]string, error) {
 	return user, nil
 }
 
-// associate with OpenID Server. opEndpoint is OpenID endpoint, like
+// associate with OpenID Server. endpoint is OpenID endpoint, like
 // https://openidserver.com/openid
-func (o *OpenID) associate(opEndpoint string) *Association {
+func (o *OpenID) associate(endpoint string) *Association {
 	values := map[string]string{
 		"mode":       "associate",
 		"assoc_type": o.assocType,
 	}
 
-	if assoc, ok := o.assocs.get(opEndpoint); ok {
-		return &assoc
+	if assoc, ok := o.assocs.get(endpoint); ok {
+		return assoc
 	}
 
 	v := url.Values{}
 	encodeHTTP(v, values)
-	urlStr := fmt.Sprintf("%s?%s", opEndpoint, v.Encode())
+	urlStr := fmt.Sprintf("%s?%s", endpoint, v.Encode())
 	// make a request to OpenID Server asking for associate
 	resp, err := http.Get(urlStr)
 	if err != nil {
@@ -154,10 +153,10 @@ func (o *OpenID) associate(opEndpoint string) *Association {
 	if err != nil {
 		return nil
 	}
-	expiresDu := time.Duration(expiresIn * 1000 * 1000 * 1000)
+	expiresDu := time.Duration(expiresIn) * time.Second
 
-	assoc := Association{
-		Endpoint: opEndpoint,
+	assoc := &Association{
+		Endpoint: endpoint,
 		Handle:   openidValues["assoc_handle"],
 		Secret:   secret,
 		Type:     openidValues["assoc_type"],
@@ -165,7 +164,7 @@ func (o *OpenID) associate(opEndpoint string) *Association {
 	}
 
 	// store associate for later use
-	o.assocs.set(opEndpoint, assoc)
+	o.assocs.set(endpoint, assoc)
 
-	return &assoc
+	return assoc
 }
