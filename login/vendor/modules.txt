@@ -1,0 +1,6 @@
+# github.com/shuaiming/openid v1.0.1
+## explicit
+github.com/shuaiming/openid
+# github.com/shuaiming/sessions v0.0.1
+## explicit
+github.com/shuaiming/sessions

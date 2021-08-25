@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/shuaiming/beans/sessions"
 	"github.com/shuaiming/openid"
+	"github.com/shuaiming/sessions"
 )
 
 const (
