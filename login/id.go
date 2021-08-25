@@ -1,4 +1,4 @@
-package beans
+package login
 
 import (
 	"fmt"
