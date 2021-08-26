@@ -59,46 +59,60 @@ func (o *OpenID) ServeHTTP(
 
 	s, ok := sessions.GetSession(r)
 	if !ok {
-		log.Printf("OpenID can not enabled without Sessions")
+		log.Printf("login can not be enabled without session")
 		next(rw, r)
 		return
 	}
 
-	// verifyURL is url for OpenID Server back redirecetion
+	// redirectURL url return back after login/logout
+	redirectURL := r.URL.Query().Get(urlKeyRedirect)
+
+	loginURL := fmt.Sprintf("%s/login", o.prefix)
+	logoutURL := fmt.Sprintf("%s/logout", o.prefix)
 	verifyURL := fmt.Sprintf("%s/verify", o.prefix)
 
 	switch r.URL.Path {
-	case fmt.Sprintf("%s/login", o.prefix):
-
-		// redirectURL is the url return back to after login finished
-		// We will store it to "session" for later usage
-		if redirectURL := r.URL.Query().Get(urlKeyRedirect); redirectURL != "" {
+	case loginURL:
+		if redirectURL != "" {
 			s.Store(sesKeyRedirect, redirectURL)
 		}
 
-		// URL is url redirect to OpenID Server
-		if authURL, err := o.openid.CheckIDSetup(o.endpoint, verifyURL); err == nil {
-			http.Redirect(rw, r, authURL, http.StatusFound)
-		} else {
-			log.Println("OpenID error", err.Error())
+		// Redirect to OpenID provider
+		authURL, err := o.openid.CheckIDSetup(o.endpoint, verifyURL)
+		if err != nil {
+			log.Println(err)
+			return
 		}
 
-	case verifyURL:
+		http.Redirect(rw, r, authURL, http.StatusFound)
 
+	case logoutURL:
+		s.Delete(sesKeyOpenID)
+		if redirectURL != "" {
+			http.Redirect(rw, r, redirectURL, http.StatusFound)
+			s.Delete(sesKeyRedirect)
+			return
+		}
+
+		rw.WriteHeader(http.StatusAccepted)
+		fmt.Fprintln(rw, "logout")
+
+	case verifyURL:
 		user, err := o.openid.IDRes(r)
 		if err != nil {
-			log.Println("OpenID error", err.Error())
-			break
+			log.Println(err)
+			return
 		}
 
 		s.Store(sesKeyOpenID, user)
 
-		if redirectURL, ok := s.Load(sesKeyRedirect); ok {
-			http.Redirect(rw, r, redirectURL.(string), http.StatusFound)
+		if redirect, ok := s.Load(sesKeyRedirect); ok {
+			http.Redirect(rw, r, redirect.(string), http.StatusFound)
 			s.Delete(sesKeyRedirect)
-		} else {
-			http.Redirect(rw, r, o.realm, http.StatusFound)
+			return
 		}
+
+		http.Redirect(rw, r, o.realm, http.StatusFound)
 
 	default:
 		next(rw, r)
