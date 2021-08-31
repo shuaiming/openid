@@ -45,22 +45,22 @@ func New(prefix, realm, endpoint, keyRedir string) *OpenID {
 
 // ServeHTTPimp implement pod.Handler
 func (o *OpenID) ServeHTTP(
-	rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
 	if !strings.HasPrefix(r.URL.Path, o.prefix) {
-		next(rw, r)
+		next(w, r)
 		return
 	}
 
 	if r.Method != "GET" && r.Method != "HEAD" {
-		next(rw, r)
+		next(w, r)
 		return
 	}
 
 	s, ok := sessions.GetSession(r)
 	if !ok {
 		log.Printf("login can not be enabled without session")
-		next(rw, r)
+		next(w, r)
 		return
 	}
 
@@ -84,18 +84,18 @@ func (o *OpenID) ServeHTTP(
 			return
 		}
 
-		http.Redirect(rw, r, authURL, http.StatusFound)
+		http.Redirect(w, r, authURL, http.StatusFound)
 
 	case logoutURL:
 		s.Delete(sesKeyOpenID)
 		if redirectURL != "" {
-			http.Redirect(rw, r, redirectURL, http.StatusFound)
+			http.Redirect(w, r, redirectURL, http.StatusFound)
 			s.Delete(sesKeyRedirect)
 			return
 		}
 
-		rw.WriteHeader(http.StatusAccepted)
-		fmt.Fprintln(rw, "logout")
+		w.WriteHeader(http.StatusAccepted)
+		fmt.Fprintln(w, "logout")
 
 	case verifyURL:
 		user, err := o.openid.IDRes(r)
@@ -107,15 +107,15 @@ func (o *OpenID) ServeHTTP(
 		s.Store(sesKeyOpenID, user)
 
 		if redirect, ok := s.Load(sesKeyRedirect); ok {
-			http.Redirect(rw, r, redirect.(string), http.StatusFound)
+			http.Redirect(w, r, redirect.(string), http.StatusFound)
 			s.Delete(sesKeyRedirect)
 			return
 		}
 
-		http.Redirect(rw, r, o.realm, http.StatusFound)
+		http.Redirect(w, r, o.realm, http.StatusFound)
 
 	default:
-		next(rw, r)
+		next(w, r)
 	}
 }
 
