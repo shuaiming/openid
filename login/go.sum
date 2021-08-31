@@ -1,4 +1,4 @@
 github.com/shuaiming/openid v1.0.6 h1:++Tc/nOsf9l4WELM8jnFfb6uhUdgLCIvzvDH69nG9jU=
 github.com/shuaiming/openid v1.0.6/go.mod h1:FmQBCoKw38dlM4RpEHIUtmcUvQYwTjdKfM5Nfq1TPis=
-github.com/shuaiming/sessions v0.0.2 h1:TwAdreZajlCOOOqFU0u7RE6X273TKhiJPgdbltYYPYY=
-github.com/shuaiming/sessions v0.0.2/go.mod h1:F2iDfNcUSdeuhUOdQQOgPwBmpgKDtavzHdpXEw1joMM=
+github.com/shuaiming/sessions v0.0.3 h1:FZz5o1zv5Gx+17cqKBLUNSE67s2IeB4Ndd85xVhblsQ=
+github.com/shuaiming/sessions v0.0.3/go.mod h1:F2iDfNcUSdeuhUOdQQOgPwBmpgKDtavzHdpXEw1joMM=

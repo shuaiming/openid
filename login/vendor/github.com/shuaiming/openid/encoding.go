@@ -42,16 +42,6 @@ func parseKeyValue(body []byte) (map[string]string, error) {
 	return p, nil
 }
 
-// encodeKeyValue encode openid values to io.Writer
-func encodeKeyValue(w io.Writer, p map[string]string) error {
-	for k, v := range p {
-		if err := writeKeyValuePair(w, k, v); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // writeKeyValuePair write a key value pair to io.Writer
 func writeKeyValuePair(w io.Writer, key, value string) error {
 	_, err := fmt.Fprintf(w, "%s:%s\n", key, value)
