@@ -24,16 +24,16 @@ simple OpenID consumer implementation
 
 redirect to OpenID Server login url:
 
-	func loginHandler(rw http.ResponseWriter, r *http.Request){
+	func loginHandler(w http.ResponseWriter, r *http.Request){
 		url, err := o.CheckIDSetup(opEndpoint, callbackPrefix)
 		...
-		http.Redirect(rw, r, url, http.StatusFound)
+		http.Redirect(w, r, url, http.StatusFound)
 		...
 	}
 
 verify OpenID Server redirect back:
 
-	func VerifyHander(rw http.ResponseWriter, r *http.Request){
+	func VerifyHander(w http.ResponseWriter, r *http.Request){
 		...
 		user, err := o.IDRes(r)
 		...

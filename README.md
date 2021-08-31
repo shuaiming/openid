@@ -27,10 +27,10 @@ o = openid.New(realm)
 redirect to OpenID Server login url:
 
 ```go
-func loginHandler(rw http.ResponseWriter, r *http.Request){
+func loginHandler(w http.ResponseWriter, r *http.Request){
 	url, err := o.CheckIDSetup(opEndpoint, callbackPrefix)
 	// ...
-	http.Redirect(rw, r, url, http.StatusFound)
+	http.Redirect(w, r, url, http.StatusFound)
 	// ...
 }
 ```
@@ -38,7 +38,7 @@ func loginHandler(rw http.ResponseWriter, r *http.Request){
 verify OpenID Server redirect back:
 
 ```go
-func VerifyHander(rw http.ResponseWriter, r *http.Request){
+func VerifyHander(w http.ResponseWriter, r *http.Request){
 	// ...
 	user, err := o.IDRes(r)
 	// ...
