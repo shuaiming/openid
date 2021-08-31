@@ -57,8 +57,8 @@ func (o *OpenID) ServeHTTP(
 		return
 	}
 
-	s, ok := sessions.GetSession(r)
-	if !ok {
+	s := sessions.GetSession(r)
+	if s == nil {
 		log.Printf("login can not be enabled without session")
 		next(w, r)
 		return
@@ -120,12 +120,10 @@ func (o *OpenID) ServeHTTP(
 }
 
 // GetUser return User map
-func GetUser(s sessions.Session) (map[string]string, bool) {
-	user, ok := s.Load(sesKeyOpenID)
-
-	if !ok {
-		return nil, false
+func GetUser(s sessions.Session) map[string]string {
+	if user, ok := s.Load(sesKeyOpenID); ok {
+		return user.(map[string]string)
 	}
 
-	return user.(map[string]string), true
+	return nil
 }

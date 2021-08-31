@@ -6,15 +6,15 @@ Package openid usage example:
 	o = openid.New(realm)
 
 redirect to OpenID Server login url:
-	func loginHandler(rw http.ResponseWriter, r *http.Request){
+	func loginHandler(w http.ResponseWriter, r *http.Request){
 		url, err := o.CheckIDSetup(opEndpoint, callbackPrefix)
 		...
-		http.Redirect(rw, r, url, http.StatusFound)
+		http.Redirect(w, r, url, http.StatusFound)
 		...
 	}
 
 verify OpenID Server redirect back:
-	func verifyHander(rw http.ResponseWriter, r *http.Request){
+	func verifyHander(w http.ResponseWriter, r *http.Request){
 		...
 		user, err := o.IDRes(r)
 		...
