@@ -1,4 +1,4 @@
-# github.com/shuaiming/openid v1.0.8
+# github.com/shuaiming/openid v1.0.9
 ## explicit; go 1.16
 github.com/shuaiming/openid
 # github.com/shuaiming/sessions v0.0.4
